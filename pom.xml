@@ -132,7 +132,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.battleship.BattleshipApplication</mainClass>
+                            <mainClass>com.battleship.Main</mainClass>
                         </configuration>
                     </execution>
                 </executions>

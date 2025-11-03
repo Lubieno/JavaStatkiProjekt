@@ -4,4 +4,5 @@ module com.battleship {
 
     opens com.battleship.controllers to javafx.fxml;
     exports com.battleship;
+    exports com.battleship.board;
 }
