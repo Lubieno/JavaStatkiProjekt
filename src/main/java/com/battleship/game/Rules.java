@@ -1,17 +1,11 @@
 package com.battleship.game;
 
-/**
- * Zasady gry – np. ile statków, długości, trafienia, itp.
- */
+import com.battleship.board.Board;
+import com.battleship.board.Position;
+
 public class Rules {
 
-    /** Sprawdza czy ruch jest dozwolony. */
-    public boolean ruchDozwolony(int x, int y) {
-        return x >= 0 && y >= 0 && x < 10 && y < 10;
-    }
-
-    /** Określa czy gracz dostaje dodatkową turę po trafieniu. */
-    public boolean dodatkowaTuraPrzyTrafieniu() {
-        return true;
+    public boolean isShotValid(Board enemy, Position p) {
+        return enemy.inBounds(p);
     }
 }

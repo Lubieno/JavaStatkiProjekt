@@ -1,41 +1,51 @@
 package com.battleship.game;
 
 import com.battleship.board.Board;
-import com.battleship.player.Player;
+import com.battleship.board.Position;
 import com.battleship.util.GameLogger;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Klasa główna logiki gry.
- * Przechowuje dane ulotne (plansze, gracze, stan gry).
- */
 public class Game {
-    private List<Player> gracze;
-    private List<Board> plansze;
-    private GameState stanGry;
-    private TurnManager turnManager;
 
-    public Game() {
-        gracze = new ArrayList<>();
-        plansze = new ArrayList<>();
-        stanGry = new GameState();
-        turnManager = new TurnManager();
+    private GameState state = GameState.SETUP;
+    private final Board myBoard;
+    private final Board enemyBoard;
+    private final Rules rules;
+    private final TurnManager tm;
+
+    public Game(Board my, Board enemy, boolean startFirst) {
+        this.myBoard = my;
+        this.enemyBoard = enemy;
+        this.rules = new Rules();
+        this.tm = new TurnManager(startFirst);
     }
 
-    /** Inicjalizacja danych ulotnych. */
-    public void inicjalizuj() {
-        System.out.println("Inicjalizacja gry...");
-        gracze.add(new Player("Gracz 1"));
-        gracze.add(new Player("Gracz 2"));
-        plansze.add(new Board(10, 10));
-        plansze.add(new Board(10, 10));
+    public void start() {
+        state = GameState.RUNNING;
+        GameLogger.log("Game started");
     }
 
-    /** Zapis danych trwałych po zakończeniu gry. */
-    public void zapiszPodsumowanie() {
-        GameLogger logger = new GameLogger();
-        logger.zapiszDoPliku(stanGry);
+    public void executeAction(Action a) {
+        if (state != GameState.RUNNING) return;
+
+        Position p = a.getTarget();
+
+        if (!rules.isShotValid(enemyBoard, p)) {
+            GameLogger.log("Invalid shot");
+            return;
+        }
+
+        Board.ShotResult result = enemyBoard.shoot(p);
+        GameLogger.log("Shot result: " + result);
+
+        if (enemyBoard.allSunk()) {
+            state = GameState.FINISHED;
+            GameLogger.log("Game finished: You win");
+        }
+
+        tm.switchTurn();
+    }
+
+    public GameState getState() {
+        return state;
     }
 }

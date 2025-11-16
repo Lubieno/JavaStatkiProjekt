@@ -1,18 +1,8 @@
 package com.battleship.player;
 
-/**
- * Podstawowy gracz.
- */
-public class Player {
-    protected String nazwa;
-    protected int punkty;
+import com.battleship.board.Position;
 
-    public Player(String nazwa) {
-        this.nazwa = nazwa;
-        this.punkty = 0;
-    }
-
-    public String getNazwa() { return nazwa; }
-    public int getPunkty() { return punkty; }
-    public void dodajPunkty(int p) { punkty += p; }
+public abstract class Player {
+    public abstract Position getNextShot();
+    public abstract String getName();
 }

@@ -1,19 +1,27 @@
 package com.battleship.board;
 
-/**
- * Pojedyncze pole na planszy.
- */
 public class Cell {
-    private int x;
-    private int y;
-    private boolean trafiony;
+    private boolean occupied;
+    private boolean hit;
 
-    public Cell(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.trafiony = false;
+    public Cell() {
+        this.occupied = false;
+        this.hit = false;
     }
 
-    public void oznaczTrafienie() { trafiony = true; }
-    public boolean isTrafiony() { return trafiony; }
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public boolean isHit() {
+        return hit;
+    }
+
+    public void occupy() {
+        this.occupied = true;
+    }
+
+    public void hit() {
+        this.hit = true;
+    }
 }

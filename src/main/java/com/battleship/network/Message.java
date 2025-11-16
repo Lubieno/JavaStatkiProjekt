@@ -1,17 +1,14 @@
 package com.battleship.network;
 
-/**
- * Prosty obiekt wiadomości sieciowej.
- */
-public class Message {
-    private String typ;
-    private String tresc;
+import java.io.Serializable;
+import java.util.Map;
 
-    public Message(String typ, String tresc) {
-        this.typ = typ;
-        this.tresc = tresc;
+public class Message implements Serializable {
+    public final String type;
+    public final Map<String, Object> data;
+
+    public Message(String type, Map<String, Object> data) {
+        this.type = type;
+        this.data = data;
     }
-
-    public String getTyp() { return typ; }
-    public String getTresc() { return tresc; }
 }

@@ -1,19 +1,30 @@
 package com.battleship.board;
 
-/**
- * Reprezentacja statku.
- */
-public class Ship {
-    private String nazwa;
-    private int dlugosc;
-    private boolean zatopiony;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
-    public Ship(String nazwa, int dlugosc) {
-        this.nazwa = nazwa;
-        this.dlugosc = dlugosc;
-        this.zatopiony = false;
+public class Ship implements Serializable {
+    private final Set<Position> positions = new HashSet<>();
+    private final Set<Position> hits = new HashSet<>();
+
+    public Ship(Set<Position> positions) {
+        this.positions.addAll(positions);
     }
 
-    public void oznaczZatopienie() { zatopiony = true; }
-    public boolean isZatopiony() { return zatopiony; }
+    public boolean occupies(Position p) {
+        return positions.contains(p);
+    }
+
+    public void registerHit(Position p) {
+        if (positions.contains(p)) hits.add(p);
+    }
+
+    public boolean isSunk() {
+        return hits.containsAll(positions);
+    }
+
+    public int size() {
+        return positions.size();
+    }
 }

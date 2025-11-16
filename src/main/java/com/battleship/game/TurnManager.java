@@ -1,22 +1,18 @@
 package com.battleship.game;
 
-/**
- * Zarządza kolejkami tur graczy.
- * Zasada: zbicie statku daje dodatkową turę.
- */
 public class TurnManager {
-    private int aktualnyGracz;
 
-    public TurnManager() {
-        aktualnyGracz = 0;
+    private boolean myTurn;
+
+    public TurnManager(boolean start) {
+        this.myTurn = start;
     }
 
-    /** Przechodzi do następnego gracza, o ile nie ma dodatkowej tury. */
-    public void nastepnaTura(boolean czyZbityStatek) {
-        if (!czyZbityStatek) {
-            aktualnyGracz = (aktualnyGracz + 1) % 2;
-        }
+    public boolean isMyTurn() {
+        return myTurn;
     }
 
-    public int getAktualnyGracz() { return aktualnyGracz; }
+    public void switchTurn() {
+        myTurn = !myTurn;
+    }
 }

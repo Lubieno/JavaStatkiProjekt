@@ -1,13 +1,11 @@
 package com.battleship.util;
 
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Generator unikalnych identyfikatorów (np. graczy lub sesji).
- */
 public class IdGenerator {
+    private static final AtomicLong id = new AtomicLong(1);
 
-    public static String generujID() {
-        return UUID.randomUUID().toString();
+    public static long next() {
+        return id.getAndIncrement();
     }
 }

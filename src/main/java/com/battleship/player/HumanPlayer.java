@@ -1,14 +1,22 @@
 package com.battleship.player;
 
-/**
- * Reprezentuje gracza sterowanego przez człowieka.
- */
+import com.battleship.board.Position;
+
 public class HumanPlayer extends Player {
-    public HumanPlayer(String nazwa) {
-        super(nazwa);
+
+    private final String name;
+
+    public HumanPlayer(String name) {
+        this.name = name;
     }
 
-    public void wykonajRuch() {
-        // Tutaj w przyszłości można dodać logikę wejścia z UI
+    @Override
+    public Position getNextShot() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

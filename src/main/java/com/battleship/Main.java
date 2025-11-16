@@ -1,15 +1,15 @@
 package com.battleship;
 
-import com.battleship.game.Game;
+import com.battleship.controller.GameController;
+import com.battleship.network.NetworkManager;
+import com.battleship.ui.ConsoleUI;
 
-/**
- * Punkt startowy aplikacji.
- * Obecnie tylko inicjalizuje grę i zapisuje dane do pliku.
- */
 public class Main {
-    public static void main(String[] args) {
-        Game gra = new Game();
-        gra.inicjalizuj();
-        gra.zapiszPodsumowanie(); // zapis danych trwałych (pliku z wynikami)
+    public static void main(String[] args) throws Exception {
+        ConsoleUI ui = new ConsoleUI();
+        NetworkManager nm = new NetworkManager();
+        GameController gc = new GameController(ui, nm);
+        ui.setController(gc);
+        gc.start();
     }
 }

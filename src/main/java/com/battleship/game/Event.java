@@ -1,11 +1,20 @@
 package com.battleship.game;
 
-/**
- * Zdarzenie w grze (np. zatopienie statku).
- */
 public class Event {
-    private String opis;
 
-    public Event(String opis) { this.opis = opis; }
-    public String getOpis() { return opis; }
+    private final String type;
+    private final Object payload;
+
+    public Event(String type, Object payload) {
+        this.type = type;
+        this.payload = payload;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Object getPayload() {
+        return payload;
+    }
 }

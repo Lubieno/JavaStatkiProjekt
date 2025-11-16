@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.battleship.ui.UIController">
+
+    <top>
+        <HBox spacing="10" padding="10">
+            <TextField fx:id="hostField" promptText="Host"/>
+            <TextField fx:id="portField" promptText="Port"/>
+            <Button fx:id="connectBtn" text="Connect" onAction="#onConnect"/>
+            <Button fx:id="hostBtn" text="Host" onAction="#onHost"/>
+        </HBox>
+    </top>
+
+    <center>
+        <HBox spacing="20" alignment="center" padding="20">
+            <VBox spacing="5" alignment="center">
+                <Label text="Your Board"/>
+                <GridPane fx:id="myGrid" hgap="2" vgap="2"/>
+            </VBox>
+
+            <VBox spacing="5" alignment="center">
+                <Label text="Enemy Board"/>
+                <GridPane fx:id="enemyGrid" hgap="2" vgap="2"/>
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

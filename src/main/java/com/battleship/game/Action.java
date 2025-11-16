@@ -1,17 +1,15 @@
 package com.battleship.game;
 
-/**
- * Pojedyncza akcja w grze (np. strzał).
- */
-public class Action {
-    private int x, y;
-    private boolean trafiony;
+import com.battleship.board.Position;
 
-    public Action(int x, int y, boolean trafiony) {
-        this.x = x;
-        this.y = y;
-        this.trafiony = trafiony;
+public class Action {
+    private final Position target;
+
+    public Action(Position target) {
+        this.target = target;
     }
 
-    public boolean isTrafiony() { return trafiony; }
+    public Position getTarget() {
+        return target;
+    }
 }

@@ -1,14 +1,22 @@
 package com.battleship.player;
 
-/**
- * Reprezentuje gracza zdalnego w trybie sieciowym.
- */
+import com.battleship.board.Position;
+
 public class RemotePlayer extends Player {
-    public RemotePlayer(String nazwa) {
-        super(nazwa);
+
+    private final String name;
+
+    public RemotePlayer(String name) {
+        this.name = name;
     }
 
-    public void odbierzRuch() {
-        // Przykładowe miejsce na odbiór danych z sieci
+    @Override
+    public Position getNextShot() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }
