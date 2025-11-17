@@ -9,7 +9,6 @@ import com.battleship.game.Game;
 import com.battleship.player.HumanPlayer;
 
 /**
- * @Author Student
  *
  * Controller for local single-player game vs bot.
  */

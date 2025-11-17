@@ -8,8 +8,6 @@ import com.battleship.game.Rules;
 import com.battleship.player.Player;
 
 /**
- * @Author Student
- *
  * ActionController wykonuje pojedyncze akcje (np. shot) i zwraca Event z wynikiem.
  */
 public class ActionController {

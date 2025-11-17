@@ -5,8 +5,6 @@ import com.battleship.network.NetworkManager;
 import com.battleship.network.Message;
 
 /**
- * @Author Student
- *
  * Kontroler sieciowy — wrapper nad NetworkManager/Client.
  * W tej wersji implementacji działa jako stub: przechowuje konfigurację
  * i eksponuje metody do przyszłej komunikacji TCP.

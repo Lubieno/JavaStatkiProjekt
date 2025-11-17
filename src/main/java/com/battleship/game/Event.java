@@ -1,8 +1,6 @@
 package com.battleship.game;
 
 /**
- * @Author Student
- *
  * Wynik akcji: typ + opis.
  */
 public class Event {

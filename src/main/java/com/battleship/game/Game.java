@@ -4,11 +4,6 @@ import com.battleship.player.BotPlayer;
 import com.battleship.player.HumanPlayer;
 import com.battleship.player.Player;
 
-/**
- * @Author Student
- *
- * Manages two-player (human vs bot) single game.
- */
 public class Game {
     private final Player player;
     private final Player opponent;

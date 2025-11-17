@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * @Author Student
- *
  * Prosty kontener wiadomości sieciowej. Serializable by po implementacji TCP
  * łatwiej było marshallować (lub użyć JSON).
  */

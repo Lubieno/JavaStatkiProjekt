@@ -3,8 +3,6 @@ package com.battleship.game;
 import com.battleship.board.Position;
 
 /**
- * @Author Student
- *
  * Reprezentuje akcję w grze, np. oddanie strzału w pozycję.
  */
 public class Action {

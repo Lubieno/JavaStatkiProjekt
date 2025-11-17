@@ -1,8 +1,6 @@
 package com.battleship.network;
 
 /**
- * @Author Student
- *
  * Klasa Client - stub klienta sieciowego. W obecnej wersji nie otwiera socketów,
  * ale dostarcza API do integracji w przyszłości.
  */
@@ -32,18 +30,15 @@ public class Client {
             System.out.println("[Client] Not connected. Would send: " + msg);
             return;
         }
-        // real send implementation goes here
     }
 
     public Message receive() {
         if (!connected) return null;
-        // read from network and deserialize
         return null;
     }
 
     public void disconnect() {
         if (connected) {
-            // close sockets
             connected = false;
         }
     }

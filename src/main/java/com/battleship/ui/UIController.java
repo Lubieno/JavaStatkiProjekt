@@ -8,8 +8,6 @@ import com.battleship.game.Event;
 import com.battleship.board.Position;
 
 /**
- * @Author Student
- *
  * Koordynuje UI i kontrolery (pośrednik między FXUI a GameController / ActionController).
  * FXUI może stworzyć instancję UIController i korzystać z metod do wykonania akcji.
  */

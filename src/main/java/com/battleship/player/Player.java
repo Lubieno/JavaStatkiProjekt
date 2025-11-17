@@ -2,9 +2,6 @@ package com.battleship.player;
 
 import com.battleship.board.Board;
 
-/**
- * @Author Student
- */
 public abstract class Player {
     protected final Board board = new Board();
     protected final String name;

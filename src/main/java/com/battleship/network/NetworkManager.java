@@ -1,8 +1,6 @@
 package com.battleship.network;
 
 /**
- * @Author Student
- *
  * Stub network manager - placeholder for future TCP implementation.
  * In this project we DO NOT implement TCP: local bot opponent used instead.
  */

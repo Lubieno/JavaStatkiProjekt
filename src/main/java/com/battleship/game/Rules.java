@@ -3,8 +3,6 @@ package com.battleship.game;
 import com.battleship.board.Position;
 
 /**
- * @Author Student
- *
  * Zbiór reguł gry — sprawdzanie poprawności ruchów, ograniczeń.
  */
 public class Rules {

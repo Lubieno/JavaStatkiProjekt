@@ -7,11 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * @Author Student
- *
- * Bot: places fleet randomly (including L shapes), and shoots randomly without repeating.
- */
 public class BotPlayer extends Player {
     private final List<Position> remainingShots = new ArrayList<>();
     private final Random rand = new Random();
