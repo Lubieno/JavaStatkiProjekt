@@ -1,7 +1,8 @@
 package com.battleship.game;
 
+/**
+ * @Author Student
+ */
 public enum GameState {
-    SETUP,
-    RUNNING,
-    FINISHED
+    WAITING, IN_PROGRESS, FINISHED
 }

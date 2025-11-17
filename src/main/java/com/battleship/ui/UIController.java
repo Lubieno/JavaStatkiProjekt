@@ -1,60 +1,48 @@
 package com.battleship.ui;
 
-import com.battleship.board.Position;
+import com.battleship.controller.ActionController;
 import com.battleship.controller.GameController;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
+import com.battleship.controller.NetworkController;
+import com.battleship.game.Action;
+import com.battleship.game.Event;
+import com.battleship.board.Position;
 
+/**
+ * @Author Student
+ *
+ * Koordynuje UI i kontrolery (pośrednik między FXUI a GameController / ActionController).
+ * FXUI może stworzyć instancję UIController i korzystać z metod do wykonania akcji.
+ */
 public class UIController {
+    private final GameController gameController;
+    private final ActionController actionController;
+    private final NetworkController networkController;
 
-    private GameController controller;
-
-    @FXML
-    private TextField hostField, portField;
-
-    @FXML
-    private Button connectBtn, hostBtn;
-
-    @FXML
-    private GridPane myGrid, enemyGrid;
-
-    public void setController(GameController c) {
-        this.controller = c;
-        setupEnemyGrid();
+    public UIController() {
+        this.gameController = new GameController();
+        this.actionController = new ActionController(gameController);
+        this.networkController = new NetworkController();
     }
 
-    @FXML
-    private void onHost() {
-        try {
-            int port = Integer.parseInt(portField.getText());
-            controller.host(port);
-        } catch (Exception ignored) {}
+    public GameController getGameController() { return gameController; }
+    public NetworkController getNetworkController() { return networkController; }
+
+    /**
+     * UI request to shoot at position p. Zwraca Event z wynikiem.
+     */
+    public Event shoot(Position p) {
+        Action action = new Action(Action.Type.SHOOT, p);
+        Event ev = actionController.performAction(action);
+        // jeśli gra sieciowa - tu wysyłalibyśmy komunikat do przeciwnika
+        return ev;
     }
 
-    @FXML
-    private void onConnect() {
-        try {
-            controller.connect(hostField.getText(),
-                    Integer.parseInt(portField.getText()));
-        } catch (Exception ignored) {}
-    }
-
-    private void setupEnemyGrid() {
-        for (int r = 0; r < 10; r++)
-            for (int c = 0; c < 10; c++) {
-                Button b = new Button();
-                b.setPrefSize(30, 30);
-
-                int rr = r, cc = c;
-                b.setOnAction(e -> {
-                    try {
-                        controller.sendShot(new Position(rr, cc));
-                    } catch (Exception ignored) {}
-                });
-
-                enemyGrid.add(b, c, r);
-            }
+    /**
+     * uruchom nową grę (restart)
+     */
+    public void newGame() {
+        // replace controllers with new instance
+        // (w tej prostej implementacji tworzymy nowe obiekty)
+        // Note: FXUI restartuje aplikację przez utworzenie nowego okna - więc tu może nie być użyte.
     }
 }

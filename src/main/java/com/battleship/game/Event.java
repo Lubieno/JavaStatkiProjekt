@@ -1,20 +1,26 @@
 package com.battleship.game;
 
+/**
+ * @Author Student
+ *
+ * Wynik akcji: typ + opis.
+ */
 public class Event {
+    public enum Type { HIT, MISS, ALREADY, INVALID, WIN, INFO }
 
-    private final String type;
-    private final Object payload;
+    private final Type type;
+    private final String message;
 
-    public Event(String type, Object payload) {
+    public Event(Type type, String message) {
         this.type = type;
-        this.payload = payload;
+        this.message = message;
     }
 
-    public String getType() {
-        return type;
-    }
+    public Type type() { return type; }
+    public String message() { return message; }
 
-    public Object getPayload() {
-        return payload;
+    @Override
+    public String toString() {
+        return "Event{" + "type=" + type + ", message='" + message + '\'' + '}';
     }
 }

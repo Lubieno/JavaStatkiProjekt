@@ -1,27 +1,16 @@
 package com.battleship.board;
 
+
 public class Cell {
-    private boolean occupied;
-    private boolean hit;
+    public enum State { EMPTY, SHIP, HIT, MISS }
 
-    public Cell() {
-        this.occupied = false;
-        this.hit = false;
-    }
+    private State state = State.EMPTY;
+    private Ship ship = null;
 
-    public boolean isOccupied() {
-        return occupied;
-    }
-
-    public boolean isHit() {
-        return hit;
-    }
-
-    public void occupy() {
-        this.occupied = true;
-    }
-
-    public void hit() {
-        this.hit = true;
-    }
+    public State getState() { return state; }
+    public boolean hasShip() { return ship != null; }
+    public void placeShip(Ship s) { ship = s; state = State.SHIP; }
+    public void markHit() { state = State.HIT; if (ship != null) ship.hit(); }
+    public void markMiss() { state = State.MISS; }
+    public Ship getShip() { return ship; }
 }

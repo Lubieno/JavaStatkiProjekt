@@ -1,8 +1,14 @@
 package com.battleship.player;
 
-import com.battleship.board.Position;
+import com.battleship.board.Board;
 
+/**
+ * @Author Student
+ */
 public abstract class Player {
-    public abstract Position getNextShot();
-    public abstract String getName();
+    protected final Board board = new Board();
+    protected final String name;
+    public Player(String name) { this.name = name; }
+    public Board getBoard() { return board; }
+    public String getName(){ return name; }
 }

@@ -1,15 +1,12 @@
 package com.battleship;
 
-import com.battleship.controller.GameController;
-import com.battleship.network.NetworkManager;
-import com.battleship.ui.ConsoleUI;
+import com.battleship.ui.FXUI;
 
+/**
+ * @Author Student
+ */
 public class Main {
-    public static void main(String[] args) throws Exception {
-        ConsoleUI ui = new ConsoleUI();
-        NetworkManager nm = new NetworkManager();
-        GameController gc = new GameController(ui, nm);
-        ui.setController(gc);
-        gc.start();
+    public static void main(String[] args) {
+        FXUI.main(args);
     }
 }

@@ -1,51 +1,39 @@
 package com.battleship.game;
 
-import com.battleship.board.Board;
-import com.battleship.board.Position;
-import com.battleship.util.GameLogger;
+import com.battleship.player.BotPlayer;
+import com.battleship.player.HumanPlayer;
+import com.battleship.player.Player;
 
+/**
+ * @Author Student
+ *
+ * Manages two-player (human vs bot) single game.
+ */
 public class Game {
+    private final Player player;
+    private final Player opponent;
+    private GameState state = GameState.WAITING;
+    private boolean playerTurn = true;
 
-    private GameState state = GameState.SETUP;
-    private final Board myBoard;
-    private final Board enemyBoard;
-    private final Rules rules;
-    private final TurnManager tm;
-
-    public Game(Board my, Board enemy, boolean startFirst) {
-        this.myBoard = my;
-        this.enemyBoard = enemy;
-        this.rules = new Rules();
-        this.tm = new TurnManager(startFirst);
+    public Game() {
+        player = new HumanPlayer("You");
+        opponent = new BotPlayer("Bot");
+        player.getBoard().randomPlaceFleet();
     }
 
-    public void start() {
-        state = GameState.RUNNING;
-        GameLogger.log("Game started");
-    }
+    public Player getPlayer() { return player; }
+    public Player getOpponent() { return opponent; }
+    public GameState getState() { return state; }
+    public void start() { state = GameState.IN_PROGRESS; playerTurn = true; }
 
-    public void executeAction(Action a) {
-        if (state != GameState.RUNNING) return;
+    public boolean isPlayerTurn() { return playerTurn; }
+    public void switchTurn() { playerTurn = !playerTurn; }
 
-        Position p = a.getTarget();
-
-        if (!rules.isShotValid(enemyBoard, p)) {
-            GameLogger.log("Invalid shot");
-            return;
-        }
-
-        Board.ShotResult result = enemyBoard.shoot(p);
-        GameLogger.log("Shot result: " + result);
-
-        if (enemyBoard.allSunk()) {
+    public boolean checkFinish() {
+        if (player.getBoard().allSunk() || opponent.getBoard().allSunk()) {
             state = GameState.FINISHED;
-            GameLogger.log("Game finished: You win");
+            return true;
         }
-
-        tm.switchTurn();
-    }
-
-    public GameState getState() {
-        return state;
+        return false;
     }
 }

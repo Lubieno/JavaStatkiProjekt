@@ -1,30 +1,20 @@
 package com.battleship.board;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Ship implements Serializable {
-    private final Set<Position> positions = new HashSet<>();
-    private final Set<Position> hits = new HashSet<>();
+public class Ship {
+    private final List<Position> positions = new ArrayList<>();
+    private int hits = 0;
+    private final int size;
 
-    public Ship(Set<Position> positions) {
-        this.positions.addAll(positions);
+    public Ship(List<Position> coords) {
+        this.positions.addAll(coords);
+        this.size = coords.size();
     }
 
-    public boolean occupies(Position p) {
-        return positions.contains(p);
-    }
-
-    public void registerHit(Position p) {
-        if (positions.contains(p)) hits.add(p);
-    }
-
-    public boolean isSunk() {
-        return hits.containsAll(positions);
-    }
-
-    public int size() {
-        return positions.size();
-    }
+    public List<Position> getPositions() { return positions; }
+    public int size() { return size; }
+    public void hit() { hits++; }
+    public boolean isSunk() { return hits >= size; }
 }
