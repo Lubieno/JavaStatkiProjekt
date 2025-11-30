@@ -9,6 +9,7 @@ import com.battleship.player.Player;
 
 /**
  * ActionController wykonuje pojedyncze akcje (np. shot) i zwraca Event z wynikiem.
+ * Został zmodyfikowany do obsługi trybu sieciowego.
  */
 public class ActionController {
 
@@ -22,7 +23,8 @@ public class ActionController {
      * Wykonaj akcję (strzał) gracza na pozycji p.
      * Zwraca Event z wynikiem (HIT/MISS/ALREADY/INVALID/WIN).
      */
-    public Event performAction(Action action) {
+    // Dodano NetworkController jako parametr do wykonania akcji (strzału)
+    public Event performAction(Action action, NetworkController nc) {
         if (action == null) return new Event(Event.Type.INVALID, "No action");
 
         if (action.type() != Action.Type.SHOOT) {
@@ -34,7 +36,19 @@ public class ActionController {
             return new Event(Event.Type.INVALID, "Out of bounds: " + p);
         }
 
-        // assuming human is always player in GameController design
+        // --- Tryb sieciowy ---
+        if (gameController.isNetworked()) {
+            // Sprawdź, czy tura gracza
+            if (!gameController.getGame().isPlayerTurn()) {
+                return new Event(Event.Type.INFO, "Poczekaj na swoją turę!");
+            }
+            // Strzał jest wysyłany do przeciwnika.
+            // Faktyczna zmiana stanu nastąpi po odebraniu RESULT z sieci.
+            gameController.playerShoot(p, nc);
+            return new Event(Event.Type.INFO, "Strzał wysłany. Czekaj na wynik...");
+        }
+
+        // --- Tryb lokalny (Bot) - stara logika ---
         Player opponent = gameController.getGame().getOpponent();
         Cell cell = opponent.getBoard().getCell(p);
         if (cell.getState() == Cell.State.HIT || cell.getState() == Cell.State.MISS) {

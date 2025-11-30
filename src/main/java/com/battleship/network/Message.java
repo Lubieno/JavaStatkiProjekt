@@ -10,7 +10,8 @@ import java.util.Map;
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public enum MsgType { CONNECT, DISCONNECT, SHOT, RESULT, PLACE, READY, INFO }
+    // Dodano JOIN_ROOM
+    public enum MsgType { CONNECT, DISCONNECT, SHOT, RESULT, PLACE, READY, INFO, JOIN_ROOM }
 
     private final MsgType type;
     private final Map<String, Object> payload;
