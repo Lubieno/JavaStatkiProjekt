@@ -3,11 +3,8 @@ package com.battleship.game;
 import com.battleship.board.Position;
 import java.io.Serializable;
 
-/**
- * Reprezentuje akcję w grze, np. oddanie strzału w pozycję.
- */
 public class Action implements Serializable {
-    private static final long serialVersionUID = 1L; // Dodano serialVersionUID
+    private static final long serialVersionUID = 1L;
     public enum Type { SHOOT, PLACE, OTHER }
 
     private final Type type;

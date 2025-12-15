@@ -2,9 +2,6 @@ package com.battleship.game;
 
 import com.battleship.player.Player;
 
-/**
- * Prosty menadżer tur. Pozwala śledzić aktywnego gracza i przełączać się.
- */
 public class TurnManager {
     private Player current;
     private Player other;

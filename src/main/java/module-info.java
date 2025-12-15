@@ -2,6 +2,7 @@ module com.battleship {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.graphics;
+    requires javafx.media;
     requires java.desktop;
 
     exports com.battleship;
@@ -12,6 +13,7 @@ module com.battleship {
     exports com.battleship.player;
     exports com.battleship.ui;
     exports com.battleship.util;
+    exports com.battleship.data;
 
     opens com.battleship.ui to javafx.fxml;
 }

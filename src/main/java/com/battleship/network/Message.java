@@ -3,14 +3,9 @@ package com.battleship.network;
 import java.io.Serializable;
 import java.util.Map;
 
-/**
- * Prosty kontener wiadomości sieciowej. Serializable by po implementacji TCP
- * łatwiej było marshallować (lub użyć JSON).
- */
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    // Dodano JOIN_ROOM
     public enum MsgType { CONNECT, DISCONNECT, SHOT, RESULT, PLACE, READY, INFO, JOIN_ROOM }
 
     private final MsgType type;

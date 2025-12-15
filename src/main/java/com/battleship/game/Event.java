@@ -1,10 +1,7 @@
 package com.battleship.game;
 
-/**
- * Wynik akcji: typ + opis.
- */
 public class Event {
-    public enum Type { HIT, MISS, ALREADY, INVALID, WIN, INFO }
+    public enum Type { HIT, MISS, ALREADY, INVALID, WIN, INFO, SUNK }
 
     private final Type type;
     private final String message;
