@@ -2,7 +2,8 @@
   <configuration default="false" name="Cat Wars" type="JarApplication" singleton="false">
     <option name="JAR_PATH" value="$PROJECT_DIR$/out/artifacts/battleship_jar/battleship.jar" />
     <option name="WORKING_DIRECTORY" value="C:\Users\kamil\IdeaProjects\JavaStatkiProjekt" />
-    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="openjdk-25" />
     <method v="2" />
   </configuration>
 </component>
