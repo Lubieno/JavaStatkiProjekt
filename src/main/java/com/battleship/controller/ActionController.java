@@ -7,6 +7,11 @@ import com.battleship.game.Event;
 import com.battleship.game.Rules;
 import com.battleship.player.Player;
 
+/**
+ * Kontroler odpowiedzialny za walidację i wykonanie akcji gracza (Command Handler).
+ * Sprawdza poprawność ruchu (czy jest tura gracza, czy pole mieści się w planszy)
+ * i deleguje wykonanie do odpowiedniego modułu (sieć lub lokalna logika).
+ */
 public class ActionController {
 
     private final GameController gameController;
@@ -27,6 +32,7 @@ public class ActionController {
             return new Event(Event.Type.INVALID, "Out of bounds: " + p);
         }
 
+        // Ścieżka dla gry sieciowej
         if (gameController.isNetworked()) {
             if (!gameController.getGame().isPlayerTurn()) {
                 return new Event(Event.Type.INFO, "Poczekaj na swoją turę!");
@@ -35,6 +41,7 @@ public class ActionController {
             return new Event(Event.Type.INFO, "Strzał wysłany...");
         }
 
+        // Ścieżka dla gry lokalnej (Human vs Bot)
         Player opponent = gameController.getGame().getOpponent();
         Cell cell = opponent.getBoard().getCell(p);
 
@@ -55,7 +62,7 @@ public class ActionController {
             return new Event(Event.Type.HIT, "Trafiony!");
         } else {
             cell.markMiss();
-            gameController.getGame().switchTurn();
+            gameController.getGame().setPlayerTurn(false);
             return new Event(Event.Type.MISS, "Pudło!");
         }
     }

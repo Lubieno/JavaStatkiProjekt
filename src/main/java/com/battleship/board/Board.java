@@ -4,12 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Centralna klasa logiki planszy.
+ * Implementuje siatkę gry jako dwuwymiarową tablicę obiektów `Cell`.
+ * Zawiera kluczowe algorytmy walidacji rozmieszczenia statków, sprawdzania kolizji
+ * oraz warunków końca gry.
+ */
 public class Board {
     public static final int SIZE = 10;
     private final Cell[][] grid = new Cell[SIZE][SIZE];
     private final List<Ship> ships = new ArrayList<>();
     private final Random rand = new Random();
 
+    /**
+     * Inicjalizuje macierz gry, wypełniając ją nowymi instancjami `Cell`.
+     */
     public Board() {
         for (int r = 0; r < SIZE; r++)
             for (int c = 0; c < SIZE; c++)
@@ -18,6 +27,12 @@ public class Board {
 
     public Cell getCell(Position p) { return grid[p.row()][p.col()]; }
 
+    /**
+     * Sprawdza globalny stan przegranej (czy wszystkie statki zostały zatopione).
+     * Wykorzystuje Java Stream API do zwięzłej weryfikacji predykatu na liście statków.
+     *
+     * @return true, jeśli każdy statek w kolekcji zwraca true dla metody isSunk().
+     */
     public boolean allSunk() {
         return ships.stream().allMatch(Ship::isSunk);
     }
@@ -26,6 +41,15 @@ public class Board {
         return getCell(p).getShip();
     }
 
+    /**
+     * Waliduje możliwość umieszczenia statku na zadanych pozycjach.
+     * Algorytm sprawdza dwa warunki:
+     * 1. Czy pozycje mieszczą się w granicach planszy.
+     * 2. Czy w promieniu 1 kratki (włącznie z przekątnymi - sąsiedztwo Moore'a) nie znajduje się inny statek.
+     *
+     * @param coords Lista planowanych pozycji statku.
+     * @return true, jeśli pozycja jest legalna.
+     */
     public boolean canPlace(List<Position> coords) {
         for (Position p : coords) {
             if (!p.inBounds(SIZE)) return false;
@@ -43,6 +67,10 @@ public class Board {
         return true;
     }
 
+    /**
+     * Generuje listę współrzędnych liniowych dla statku o zadanej długości i orientacji.
+     * Służy do translacji punktu startowego i kierunku na konkretny zbiór komórek.
+     */
     public List<Position> getLinearCoords(Position start, Orientation o, int size) {
         List<Position> coords = new ArrayList<>();
         int dr = 0, dc = 0;
@@ -59,6 +87,13 @@ public class Board {
         return coords;
     }
 
+    /**
+     * Próbuje umieścić statek na planszy.
+     * Operacja jest atomowa z punktu widzenia logiki gry - albo statek jest stawiany w całości, albo wcale.
+     *
+     * @param coords Współrzędne statku.
+     * @return true, jeśli operacja się powiodła (walidacja przeszła pomyślnie).
+     */
     public boolean placeShip(List<Position> coords) {
         if (!canPlace(coords)) return false;
         Ship s = new Ship(coords);
@@ -76,19 +111,26 @@ public class Board {
                 grid[r][c] = new Cell();
     }
 
+    /**
+     * Automatycznie rozmieszcza flotę przy użyciu algorytmu losowego (metoda Monte Carlo).
+     * Dla każdego statku podejmowane jest do 100 prób wylosowania legalnej pozycji.
+     * Jeśli próby się nie powiodą, dany statek może nie zostać postawiony (choć przy tej wielkości planszy
+     * prawdopodobieństwo takiego zdarzenia jest marginalne).
+     */
     public void randomPlaceFleet() {
         clear();
-        int[] fleet = {4,3,3,2,2,2,1,1,1,1};
+        int[] fleet = {4,3,3,2,2,2,1,1,1,1}; // Definicja standardowej floty
 
         for (int size : fleet) {
             boolean placed = false;
             int trials = 0;
-            while (!placed && trials++ < 1000) {
+            while (!placed && trials < 100) {
+                int r = rand.nextInt(SIZE);
+                int c = rand.nextInt(SIZE);
                 Orientation o = Orientation.values()[rand.nextInt(4)];
-                int r = rand.nextInt(SIZE), c = rand.nextInt(SIZE);
-                List<Position> coords = getLinearCoords(new Position(r,c), o, size);
-
-                if (coords != null && placeShip(coords)) placed = true;
+                List<Position> coords = getLinearCoords(new Position(r, c), o, size);
+                if (placeShip(coords)) placed = true;
+                trials++;
             }
         }
     }

@@ -12,10 +12,14 @@ import com.battleship.game.Event;
 import com.battleship.network.Message;
 import java.util.Map;
 
+/**
+ * Główny kontroler (Controller w MVC) koordynujący przepływ gry.
+ * Zarządza stanem modelu (Game), pośredniczy w komunikacji z ProfileManagerem
+ * oraz obsługuje logikę tur (przełączanie między graczem a botem/siecią).
+ */
 public class GameController {
     private Game game;
     private boolean isNetworked;
-    // potrzebne zeby zliczyc zbite statki do profilu
     private ProfileManager profileManager;
 
     public GameController(String playerName, String opponentName, boolean isHost) {
@@ -35,39 +39,35 @@ public class GameController {
     public Game getGame() { return game; }
     public boolean isNetworked() { return isNetworked; }
 
+    /**
+     * Aktualizuje planszę przeciwnika ("cień") na podstawie wyniku strzału otrzymanego z sieci.
+     */
     public void markOpponentBoard(Position p, Event.Type type) {
-        Player opp = game.getOpponent();
-        Cell cell = opp.getBoard().getCell(p);
-
-        if (type == Event.Type.HIT || type == Event.Type.WIN || type == Event.Type.SUNK) {
-            cell.markHit();
-
-            // naliczanie statystyk trafien w profilu
-            if (profileManager != null && profileManager.getCurrentProfile() != null) {
-                if (type == Event.Type.SUNK || type == Event.Type.WIN) {
-                    profileManager.getCurrentProfile().addSunkShip();
-                    // zapisujemy postep od razu
-                    profileManager.saveProfiles();
-                }
+        Cell c = game.getOpponent().getBoard().getCell(p);
+        if (type == Event.Type.HIT || type == Event.Type.SUNK || type == Event.Type.WIN) {
+            c.markHit();
+            // Aktualizacja statystyk profilu
+            if ((type == Event.Type.SUNK || type == Event.Type.WIN) && profileManager != null) {
+                profileManager.getCurrentProfile().addSunkShip();
             }
-
-            if (type == Event.Type.WIN) {
-                game.checkFinish();
-            }
-        } else if (type == Event.Type.MISS) {
-            cell.markMiss();
+        } else {
+            c.markMiss();
         }
     }
 
-    public String playerShoot(Position p, NetworkController nc) {
-        if (isNetworked) {
-            Message shotMsg = new Message(Message.MsgType.SHOT, Map.of("position", p));
-            nc.sendMessage(shotMsg);
-            return "Wysłano...";
-        }
-        return "";
+    /**
+     * Logika oddawania strzału przez gracza w trybie sieciowym.
+     * Generuje obiekt Message i wysyła go przez NetworkController.
+     */
+    public void playerShoot(Position p, NetworkController nc) {
+        Message msg = new Message(Message.MsgType.SHOT, Map.of("position", p));
+        nc.sendMessage(msg);
     }
 
+    /**
+     * Przetwarza strzał otrzymany od przeciwnika sieciowego na naszej lokalnej planszy.
+     * Zwraca wynik (Event), który zostanie odesłany z powrotem.
+     */
     public Event executeRemoteShot(Position p) {
         Player localPlayer = game.getPlayer();
         Cell cell = localPlayer.getBoard().getCell(p);
@@ -93,6 +93,9 @@ public class GameController {
         }
     }
 
+    /**
+     * Wykonuje turę bota (dla gry lokalnej).
+     */
     public String botTurn() {
         if (isNetworked) return "";
 
@@ -111,11 +114,12 @@ public class GameController {
                 game.checkFinish();
                 return "Bot wygrał!";
             }
-            return "Bot trafił w " + shot;
+            // Bot trafia, więc ma kolejny ruch (rekurencja logiczna)
+            return "Bot trafił! " + botTurn();
         } else {
             cell.markMiss();
-            game.switchTurn();
-            return "Bot pudło w " + shot;
+            game.setPlayerTurn(true);
+            return "Bot spudłował.";
         }
     }
 }

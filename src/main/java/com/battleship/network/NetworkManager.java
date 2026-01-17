@@ -2,6 +2,11 @@ package com.battleship.network;
 
 import com.battleship.util.GameLogger;
 
+/**
+ * Wzorzec Fasady (Facade) dla warstwy sieciowej.
+ * Klasa ta ukrywa szczegóły tworzenia i konfiguracji instancji `Client`.
+ * Dostarcza prosty interfejs API dla kontrolerów do inicjowania połączeń.
+ */
 public class NetworkManager {
     private Client client;
 

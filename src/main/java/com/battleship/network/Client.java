@@ -6,19 +6,27 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Klasa realizująca niskopoziomową obsługę komunikacji sieciowej TCP/IP.
+ * Rozszerza klasę `Thread`, aby operacje wejścia/wyjścia (blokujące `readObject`)
+ * wykonywały się w tle, nie zamrażając interfejsu użytkownika (UI).
+ *
+ * Implementuje logikę zarówno dla strony Hosta (ServerSocket) jak i Gościa (Socket),
+ * w zależności od parametru `isHost` przekazanego w konstruktorze.
+ */
 public class Client extends Thread implements Closeable {
     private final String host;
     private final String playerName;
     private final String roomId;
     private final boolean isHost;
 
-    // Pola sieciowe
     private final int port;
     private ServerSocket serverSocket;
     private Socket socket;
@@ -35,10 +43,17 @@ public class Client extends Thread implements Closeable {
         this.isHost = isHost;
     }
 
+    /**
+     * Uruchamia wątek sieciowy.
+     */
     public void connect() {
         this.start();
     }
 
+    /**
+     * Główna pętla wątku sieciowego.
+     * Odpowiada za nawiązanie połączenia, synchronizację strumieni oraz ciągły nasłuch wiadomości.
+     */
     @Override
     public void run() {
         try {
@@ -47,13 +62,15 @@ public class Client extends Thread implements Closeable {
 
                 serverSocket = new ServerSocket();
                 serverSocket.setReuseAddress(true);
-                serverSocket.bind(new java.net.InetSocketAddress(port));
+                serverSocket.bind(new InetSocketAddress(port));
 
                 socket = serverSocket.accept();
                 GameLogger.log("[Host] Połączono z gościem: " + socket.getInetAddress().getHostAddress());
             } else {
                 GameLogger.log("[Guest] Próba połączenia z " + host + ":" + port);
-                socket = new Socket(host, port);
+                socket = new Socket();
+                // Ustawienie timeoutu połączenia na 5000ms zapobiega nieskończonemu wiszeniu przy błędnym IP
+                socket.connect(new InetSocketAddress(host, port), 5000);
                 GameLogger.log("[Guest] Połączono z hostem.");
             }
             performStreamSynchronization();
@@ -72,29 +89,31 @@ public class Client extends Thread implements Closeable {
         }
     }
 
+    /**
+     * Inicjalizuje strumienie obiektów (Object Input/Output).
+     * Kluczowa jest tu kolejność: Host najpierw tworzy Output i flushuje nagłówek,
+     * Gość najpierw tworzy Input. Odwrotna kolejność lub jednoczesne tworzenie Input
+     * po obu stronach prowadziłoby do zakleszczenia (deadlock) na etapie odczytu nagłówka.
+     */
     private void performStreamSynchronization() throws IOException {
-
         if (isHost) {
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.flush();
-            GameLogger.log("[Host] Utworzono OOS.");
-
             inputStream = new ObjectInputStream(socket.getInputStream());
-            GameLogger.log("[Host] Utworzono OIS (wejście).");
-
         } else {
             inputStream = new ObjectInputStream(socket.getInputStream());
-            GameLogger.log("[Guest] Utworzono OIS.");
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.flush();
-            GameLogger.log("[Guest] Utworzono OOS (wyjście).");
         }
-
         GameLogger.log("[" + (isHost ? "Host" : "Guest") + "] Synchronizacja strumieni TCP zakończona.");
     }
 
+    /**
+     * Protokół weryfikacji pokoju.
+     * Sprawdza, czy obie strony próbują dołączyć do tej samej sesji (roomId).
+     * Zapobiega przypadkowym połączeniom z niepożądanymi klientami w tej samej sieci.
+     */
     private void performRoomHandshake() throws IOException, ClassNotFoundException, InterruptedException {
-
         if (isHost) {
             Message joinMsg = (Message) inputStream.readObject();
             String remoteRoomId = (String) joinMsg.payload().get("roomId");
@@ -127,6 +146,9 @@ public class Client extends Thread implements Closeable {
 
     public boolean isConnected() { return connected; }
 
+    /**
+     * Wysyła wiadomość do gniazda. Metoda jest thread-safe dzięki naturze strumieni blokujących.
+     */
     public void send(Message msg) {
         if (!connected || outputStream == null) {
             GameLogger.log("[" + (isHost ? "Host" : "Guest") + "] Nie połączono. Pominięto wysłanie: " + msg);
@@ -141,12 +163,20 @@ public class Client extends Thread implements Closeable {
         }
     }
 
+    /**
+     * Pobiera odebraną wiadomość z kolejki blokującej.
+     * @return Wiadomość lub null, jeśli kolejka pusta.
+     */
     public Message receiveMessage() {
         return receivedMessages.poll();
     }
 
+    /**
+     * Bezpiecznie zamyka połączenie i zwalnia zasoby systemowe.
+     * Implementacja z interfejsu Closeable.
+     */
     public void disconnect() {
-        if (!connected) return;
+        if (!connected && socket == null) return;
         connected = false;
         try {
             if (inputStream != null) inputStream.close();

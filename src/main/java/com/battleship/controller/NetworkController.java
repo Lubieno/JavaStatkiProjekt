@@ -13,6 +13,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Kontroler sieciowy łączący warstwę transportową (Client) z logiką gry (GameController).
+ * Wykorzystuje wzorzec Polling (odpytywanie) za pomocą `ScheduledExecutorService`,
+ * aby cyklicznie pobierać wiadomości z kolejki klienta i przetwarzać je w głównym wątku aplikacji.
+ */
 public class NetworkController {
     private final NetworkManager networkManager;
     private Client client;
@@ -60,6 +65,7 @@ public class NetworkController {
             scheduler.shutdownNow();
         }
 
+        // Uruchamia cykliczne zadanie sprawdzania nowych wiadomości co 100ms
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleWithFixedDelay(this::processMessages, 0, 100, TimeUnit.MILLISECONDS);
     }
@@ -71,6 +77,10 @@ public class NetworkController {
         }
     }
 
+    /**
+     * Maszyna stanów przetwarzająca przychodzące pakiety.
+     * Decyduje o tym, jak zaktualizować model gry w odpowiedzi na komunikat z sieci.
+     */
     private void handleReceivedMessage(Message msg) {
         GameLogger.log("[NetworkController] Odebrano: " + msg);
 
@@ -81,6 +91,7 @@ public class NetworkController {
 
         switch (msg.type()) {
             case READY:
+                // Inicjalizacja gry po udanym Handshake'u
                 String opponentName = (String) msg.payload().getOrDefault("opponentName", "Remote Player");
                 boolean yourTurn = (boolean) msg.payload().getOrDefault("yourTurn", true);
 
@@ -88,13 +99,15 @@ public class NetworkController {
                 gameController.getGame().setPlayerTurn(yourTurn);
 
                 GameLogger.log("Gra gotowa. Przeciwnik: " + opponentName + ". Twoja tura: " + yourTurn);
-
                 break;
+
             case SHOT:
+                // Przeciwnik strzela w naszą planszę
                 Position p = (Position) msg.payload().get("position");
                 Event result = gameController.executeRemoteShot(p);
                 GameLogger.log("Przeciwnik strzelił w " + p + ". Wynik: " + result.type());
 
+                // Odsyłamy wynik strzału
                 Message resultMsg = new Message(Message.MsgType.RESULT, Map.of(
                         "type", result.type().name(),
                         "message", result.message(),
@@ -102,17 +115,18 @@ public class NetworkController {
                 ));
                 sendMessage(resultMsg);
 
+                // Aktualizacja tury
                 if (result.type() == Event.Type.MISS || result.type() == Event.Type.WIN) {
                     gameController.getGame().setPlayerTurn(true);
                 } else {
                     gameController.getGame().setPlayerTurn(false);
                 }
-
                 break;
+
             case RESULT:
+                // Otrzymujemy wynik naszego strzału
                 String typeStr = (String) msg.payload().get("type");
                 Position pResult = (Position) msg.payload().get("position");
-
                 Event.Type type = Event.Type.valueOf(typeStr);
 
                 gameController.markOpponentBoard(pResult, type);
@@ -122,14 +136,13 @@ public class NetworkController {
                 } else {
                     gameController.getGame().setPlayerTurn(true);
                 }
-
-                GameLogger.log("Wynik Twojego strzału: " + typeStr + " na " + pResult);
-
                 break;
+
             case DISCONNECT:
                 GameLogger.log("Przeciwnik rozłączony. Powód: " + msg.payload().get("reason"));
                 gameController.getGame().checkFinish();
                 break;
+
             default:
                 GameLogger.log("Nieznany typ wiadomości: " + msg.type());
         }

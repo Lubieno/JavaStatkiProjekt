@@ -40,11 +40,23 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Główna klasa widoku aplikacji oparta na bibliotece JavaFX.
+ * Rozszerza klasę Application i zarządza cyklem życia okien (Stage) oraz scen (Scene).
+ *
+ * Odpowiada za:
+ * 1. Budowanie interfejsu graficznego (Layouts, Controls).
+ * 2. Obsługę zdarzeń wejścia (Mysz, Klawiatura).
+ * 3. Wizualizację stanu gry (GridPane, animacje, style CSS).
+ * 4. Walidację danych wejściowych od użytkownika (np. adresy IP).
+ */
 public class FXUI extends Application {
 
     private static final int CELL_SIZE = 35;
 
+    // Definicje stylów CSS jako stałe dla ułatwienia refaktoryzacji
     private static final String BG_GRADIENT_START = "#ffe6fa";
     private static final String BG_GRADIENT_END = "#ffcce6";
     private static final String PANEL_BG = "rgba(255, 255, 255, 0.85)";
@@ -115,6 +127,9 @@ public class FXUI extends Application {
     private int selectedShipSize = 0;
     private final int[] availableShips = {0, 4, 3, 2, 1};
 
+    /**
+     * Punkt startowy JavaFX. Wywoływany automatycznie po launch().
+     */
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -127,6 +142,9 @@ public class FXUI extends Application {
         showProfileSelection();
     }
 
+    /**
+     * Zamyka zasoby przy wyjściu z aplikacji.
+     */
     private void shutdown() {
         uiController.closeNetwork();
         if (gameLoop != null) gameLoop.shutdownNow();
@@ -201,6 +219,7 @@ public class FXUI extends Application {
         primaryStage.setTitle("Cat Wars - Profile");
         primaryStage.show();
     }
+
     private void showMainMenu() {
         shutdown();
         soundManager.resumeMusic();
@@ -305,16 +324,46 @@ public class FXUI extends Application {
         primaryStage.setScene(new Scene(root, 1100, 750));
     }
 
+    /**
+     * Parsuje i waliduje wprowadzony przez użytkownika ciąg "IP:Port".
+     * Obsługuje błędy formatu i zakresu portów (1-65535).
+     * W przypadku błędu wyświetla Alert, zamiast rzucać wyjątkiem w dół stosu.
+     */
     private void handleConnect(boolean isHost, String ipPortRaw) {
         String host = "localhost";
-        if (ipPortRaw.contains(":")) host = ipPortRaw.split(":")[0];
+        int port = NetworkManager.DEFAULT_PORT;
+
+        if (ipPortRaw == null || ipPortRaw.trim().isEmpty()) {
+            new Alert(Alert.AlertType.ERROR, "Adres nie może być pusty!").show();
+            return;
+        }
 
         try {
-            uiController.initNetworkGame(isHost ? "Host" : "Guest", isHost ? null : host, "ROOM1", isHost);
+            if (ipPortRaw.contains(":")) {
+                String[] parts = ipPortRaw.split(":");
+                host = parts[0];
+                if (host.isEmpty()) host = "localhost";
+
+                if (parts.length > 1 && !parts[1].isEmpty()) {
+                    port = Integer.parseInt(parts[1]);
+                }
+            } else {
+                host = ipPortRaw;
+            }
+
+            if (port < 1 || port > 65535) throw new NumberFormatException("Port out of range");
+
+        } catch (NumberFormatException e) {
+            new Alert(Alert.AlertType.ERROR, "Błędny format portu! (1-65535)").show();
+            return;
+        }
+
+        try {
+            uiController.initNetworkGame(isHost ? "Host" : "Guest", isHost ? null : host, port, "ROOM1", isHost);
             uiController.getGameController().setProfileManager(profileManager);
             showPlacementScreen();
         } catch (Exception e) {
-            Alert a = new Alert(Alert.AlertType.ERROR, "Błąd: " + e.getMessage());
+            Alert a = new Alert(Alert.AlertType.ERROR, "Błąd inicjalizacji sieci: " + e.getMessage());
             a.show();
         }
     }
@@ -401,10 +450,10 @@ public class FXUI extends Application {
 
     private void updateShipButtons(VBox container) {
         container.getChildren().clear();
-        container.getChildren().add(createShipSelectBtn(4, "Duży Kot (1x)", container));
-        container.getChildren().add(createShipSelectBtn(3, "Średni Kot (2x)", container));
-        container.getChildren().add(createShipSelectBtn(2, "Mały Kot (3x)", container));
-        container.getChildren().add(createShipSelectBtn(1, "Kociak (4x)", container));
+        container.getChildren().add(createShipSelectBtn(4, "Duży Kot", container));
+        container.getChildren().add(createShipSelectBtn(3, "Średni Kot", container));
+        container.getChildren().add(createShipSelectBtn(2, "Mały Kot", container));
+        container.getChildren().add(createShipSelectBtn(1, "Kociak", container));
     }
 
     private Button createShipSelectBtn(int size, String label, VBox container) {
@@ -428,35 +477,67 @@ public class FXUI extends Application {
         return b;
     }
 
+    /**
+     * Odświeża siatkę rozmieszczania statków.
+     * Implementuje interaktywny podgląd (hover) z wizualizacją kolizji (zmiana koloru na czerwony).
+     */
     private void refreshPlacementGrid(GridPane grid) {
         grid.getChildren().clear();
         Board b = uiController.getGameController().getGame().getPlayer().getBoard();
 
-        for(int r=0; r<10; r++) {
-            for(int c=0; c<10; c++) {
+        Rectangle[][] gridRects = new Rectangle[10][10];
+
+        for (int r = 0; r < 10; r++) {
+            for (int c = 0; c < 10; c++) {
                 Rectangle rect = new Rectangle(CELL_SIZE, CELL_SIZE);
-                rect.setArcWidth(10); rect.setArcHeight(10);
+                rect.setArcWidth(10);
+                rect.setArcHeight(10);
                 rect.setStroke(Color.web(GRID_LINES));
 
                 Cell cell = b.getCell(new Position(r, c));
                 if (cell.hasShip()) rect.setFill(Color.web(PUSHEEN_GREY));
                 else rect.setFill(Color.web(WATER_COLOR));
 
-                int rr=r, cc=c;
+                gridRects[r][c] = rect;
+                grid.add(rect, c, r);
+            }
+        }
+
+        for (int r = 0; r < 10; r++) {
+            for (int c = 0; c < 10; c++) {
+                int finalR = r;
+                int finalC = c;
+                Rectangle rect = gridRects[r][c];
+
+                // Logic for mouse hover (Preview Ghost Ship)
                 rect.setOnMouseEntered(e -> {
-                    if (selectedShipSize > 0) rect.setFill(Color.web(MISS_COLOR));
-                });
-                rect.setOnMouseExited(e -> {
-                    if (!b.getCell(new Position(rr,cc)).hasShip()) rect.setFill(Color.web(WATER_COLOR));
-                    else rect.setFill(Color.web(PUSHEEN_GREY));
+                    if (selectedShipSize > 0 && availableShips[selectedShipSize] > 0) {
+                        drawPreview(b, gridRects, finalR, finalC, true);
+                    }
                 });
 
+                rect.setOnMouseExited(e -> {
+                    if (selectedShipSize > 0) {
+                        drawPreview(b, gridRects, finalR, finalC, false);
+                    }
+                });
+
+                // Logic for click (Place or Rotate)
                 rect.setOnMouseClicked(e -> {
                     if (e.getButton() == MouseButton.SECONDARY) {
+                        // Rotation logic
+                        if (selectedShipSize > 0) drawPreview(b, gridRects, finalR, finalC, false);
+
                         currentOrientation = (currentOrientation == Orientation.RIGHT) ? Orientation.DOWN : Orientation.RIGHT;
-                    } else if (e.getButton() == MouseButton.PRIMARY) {
+
                         if (selectedShipSize > 0 && availableShips[selectedShipSize] > 0) {
-                            List<Position> coords = b.getLinearCoords(new Position(rr, cc), currentOrientation, selectedShipSize);
+                            drawPreview(b, gridRects, finalR, finalC, true);
+                        }
+                    }
+                    else if (e.getButton() == MouseButton.PRIMARY) {
+                        // Placement logic
+                        if (selectedShipSize > 0 && availableShips[selectedShipSize] > 0) {
+                            List<Position> coords = b.getLinearCoords(new Position(finalR, finalC), currentOrientation, selectedShipSize);
                             if (coords != null && b.placeShip(coords)) {
                                 soundManager.playClick();
                                 availableShips[selectedShipSize]--;
@@ -469,12 +550,42 @@ public class FXUI extends Application {
                         }
                     }
                 });
-
-                grid.add(rect, c, r);
             }
         }
     }
 
+    /**
+     * Rysuje podgląd statku na siatce (Ghost Ship).
+     * Używa kolorowania warunkowego (zielony/czerwony) w zależności od walidacji logicznej (canPlace).
+     */
+    private void drawPreview(Board b, Rectangle[][] gridRects, int r, int c, boolean show) {
+        List<Position> coords = b.getLinearCoords(new Position(r, c), currentOrientation, selectedShipSize);
+        boolean canPlace = b.canPlace(coords);
+
+        for (Position p : coords) {
+            if (p.row() >= 0 && p.row() < 10 && p.col() >= 0 && p.col() < 10) {
+                Rectangle targetRect = gridRects[p.row()][p.col()];
+
+                if (show) {
+                    if (canPlace) {
+                        targetRect.setFill(Color.rgb(178, 247, 239, 0.6));
+                    } else {
+                        targetRect.setFill(Color.rgb(255, 100, 100, 0.5));
+                    }
+                } else {
+                    Cell cell = b.getCell(p);
+                    if (cell.hasShip()) targetRect.setFill(Color.web(PUSHEEN_GREY));
+                    else targetRect.setFill(Color.web(WATER_COLOR));
+                }
+            }
+        }
+    }
+
+    /**
+     * Ekran oczekiwania z zaimplementowanym Timeoutem.
+     * Jeśli połączenie nie zostanie nawiązane w ciągu 10 sekund,
+     * aplikacja przerywa oczekiwanie i zwraca użytkownika do Menu.
+     */
     private void showGameScreenWaiting() {
         VBox root = new VBox(20);
         root.setBackground(createMainBackground());
@@ -486,18 +597,38 @@ public class FXUI extends Application {
         ProgressIndicator pin = new ProgressIndicator();
         pin.setStyle("-fx-progress-color: " + HIT_COLOR + ";");
 
-        root.getChildren().addAll(status, pin);
+        Button btnCancel = createStyledButton("Anuluj", e -> {
+            shutdown();
+            showMainMenu();
+        });
+
+        root.getChildren().addAll(status, pin, btnCancel);
         primaryStage.setScene(new Scene(root, 1100, 750));
+
+        AtomicInteger waitCounter = new AtomicInteger(0);
 
         gameLoop = Executors.newSingleThreadScheduledExecutor();
         gameLoop.scheduleWithFixedDelay(() -> {
             boolean connected = uiController.getNetworkController().isConnected();
+            int ticks = waitCounter.incrementAndGet();
+
+            // Timeout check (20 ticks * 500ms = 10 seconds)
+            if (!connected && ticks > 20) {
+                Platform.runLater(() -> {
+                    if (gameLoop != null) gameLoop.shutdown();
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Nie udało się połączyć w czasie (Timeout).");
+                    alert.showAndWait();
+                    showMainMenu();
+                });
+                return;
+            }
 
             if (connected) {
                 Platform.runLater(() -> {
                     status.setText("POŁĄCZONO! STARTUJEMY!");
                     status.setTextFill(Color.web(HIT_COLOR));
                     pin.setVisible(false);
+                    btnCancel.setVisible(false);
 
                     if (gameLoop != null && !gameLoop.isShutdown()) {
                         gameLoop.shutdown();
@@ -571,6 +702,12 @@ public class FXUI extends Application {
         gameLoop.scheduleWithFixedDelay(this::gameTick, 0, 200, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Główna pętla odświeżania stanu gry.
+     * Wywoływana cyklicznie przez Scheduler.
+     * Używa Platform.runLater, aby modyfikacje UI (Label text, Grid update) były wykonywane
+     * wyłącznie w głównym wątku JavaFX (EDT), co zapobiega wyjątkom współbieżności.
+     */
     private void gameTick() {
         Platform.runLater(() -> {
             java.time.Duration d = java.time.Duration.between(gameStartTime, Instant.now());
@@ -647,6 +784,12 @@ public class FXUI extends Application {
         infoLabel.setTextFill(myTurn ? Color.web(HIT_COLOR) : Color.GRAY);
     }
 
+    /**
+     * Inteligentne odświeżanie siatki.
+     * Wykorzystuje mechanizm `userData` w węzłach JavaFX do przechowywania stanu (hash) komórki.
+     * Jeśli stan logiczny komórki (hit, miss, ship) nie zmienił się od ostatniej klatki,
+     * pomija kosztowne operacje na grafie sceny (Scene Graph), co optymalizuje wydajność.
+     */
     private void updateGridContent(GridPane g, Board b, boolean hidden) {
         boolean isOppGrid = (g == opponentGrid);
 

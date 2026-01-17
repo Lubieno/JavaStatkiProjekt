@@ -2,6 +2,12 @@ package com.battleship.data;
 
 import java.io.Serializable;
 
+/**
+ * Model danych profilu gracza (POJO).
+ * Klasa implementuje `Serializable`, co umożliwia bezpośredni zapis stanu obiektu
+ * do pliku binarnego bez konieczności mapowania na formaty pośrednie (np. JSON/XML).
+ * Przechowuje statystyki rozgrywek wykorzystywane w tabeli wyników.
+ */
 public class Profile implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -46,8 +52,8 @@ public class Profile implements Serializable {
     }
 
     public String getFormattedTime() {
-        long hours = totalTimeSeconds / 3600;
-        long minutes = (totalTimeSeconds % 3600) / 60;
-        return String.format("%dh %dm", hours, minutes);
+        long h = totalTimeSeconds / 3600;
+        long m = (totalTimeSeconds % 3600) / 60;
+        return h + "h " + m + "m";
     }
 }

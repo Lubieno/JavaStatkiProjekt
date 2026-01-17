@@ -1,0 +1,10 @@
+module:com.battleship
+com.battleship
+com.battleship.board
+com.battleship.controller
+com.battleship.data
+com.battleship.game
+com.battleship.network
+com.battleship.player
+com.battleship.ui
+com.battleship.util

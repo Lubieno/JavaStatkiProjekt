@@ -5,6 +5,11 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import java.net.URL;
 
+/**
+ * Menedżer zasobów audio wykorzystujący JavaFX Media API.
+ * Obsługuje odtwarzanie efektów dźwiękowych (AudioClip) o niskim opóźnieniu
+ * oraz muzyki w tle (MediaPlayer) w pętli.
+ */
 public class SoundManager {
     private double volume = 0.5;
     private MediaPlayer musicPlayer;
@@ -42,6 +47,10 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Ładuje klip dźwiękowy z zasobów aplikacji.
+     * @param name Nazwa pliku w katalogu resources.
+     */
     private AudioClip loadClip(String name) {
         try {
             URL res = getClass().getResource("/" + name);
@@ -59,6 +68,10 @@ public class SoundManager {
 
     public double getVolume() { return volume; }
 
+    private void play(AudioClip clip) {
+        if (clip != null) clip.play(volume);
+    }
+
     public void playClick() { play(clickSound); }
     public void playShot() { play(shotSound); }
     public void playHit() { play(hitSound); }
@@ -73,14 +86,6 @@ public class SoundManager {
     }
 
     public void resumeMusic() {
-        if(musicPlayer != null && musicPlayer.getStatus() != MediaPlayer.Status.PLAYING)
-            musicPlayer.play();
-    }
-
-    private void play(AudioClip clip) {
-        if (clip != null) {
-            clip.setVolume(volume);
-            clip.play();
-        }
+        if(musicPlayer != null) musicPlayer.play();
     }
 }
